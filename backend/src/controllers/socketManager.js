@@ -15,26 +15,31 @@ export const connectToSocket = (server) => {
     });
 
     io.on("connection", (socket) => {
-
-        console.log("SOMETHING CONNECTED")
+        console.log("SOMETHING CONNECTED:", socket.id);
 
         socket.on("join-call", (path) => {
+            // FIX: Trailing slash hatao taaki room mismatch na ho
+            const cleanPath = path.replace(/\/$/, ""); 
+            
+            console.log("User", socket.id, "joining path:", cleanPath);
 
-            if (connections[path] === undefined) {
-                connections[path] = []
+            if (connections[cleanPath] === undefined) {
+                connections[cleanPath] = []
             }
-            connections[path].push(socket.id)
-
+            connections[cleanPath].push(socket.id)
             timeOnline[socket.id] = new Date();
 
-            for (let a = 0; a < connections[path].length; a++) {
-                io.to(connections[path][a]).emit("user-joined", socket.id, connections[path])
+            // Debug: Room mein kitne log hain check karne ke liye
+            console.log("Current connections in room", cleanPath, ":", connections[cleanPath]);
+
+            for (let a = 0; a < connections[cleanPath].length; a++) {
+                io.to(connections[cleanPath][a]).emit("user-joined", socket.id, connections[cleanPath])
             }
 
-            if (messages[path] !== undefined) {
-                for (let a = 0; a < messages[path].length; ++a) {
-                    io.to(socket.id).emit("chat-message", messages[path][a]['data'],
-                        messages[path][a]['sender'], messages[path][a]['socket-id-sender'])
+            if (messages[cleanPath] !== undefined) {
+                for (let a = 0; a < messages[cleanPath].length; ++a) {
+                    io.to(socket.id).emit("chat-message", messages[cleanPath][a]['data'],
+                        messages[cleanPath][a]['sender'], messages[cleanPath][a]['socket-id-sender'])
                 }
             }
         })
@@ -44,73 +49,49 @@ export const connectToSocket = (server) => {
         })
 
         socket.on("chat-message", (data, sender) => {
-
             const [matchingRoom, found] = Object.entries(connections)
                 .reduce(([room, isFound], [roomKey, roomValue]) => {
-
-                    if (!isFound && roomValue.includes(socket.id)) {
-                        return [roomKey, true];
-                    }
-
+                    if (!isFound && roomValue.includes(socket.id)) return [roomKey, true];
                     return [room, isFound];
-
                 }, ['', false]);
 
             if (found === true) {
-                if (messages[matchingRoom] === undefined) {
-                    messages[matchingRoom] = []
-                }
-
+                if (messages[matchingRoom] === undefined) messages[matchingRoom] = []
                 messages[matchingRoom].push({ 'sender': sender, "data": data, "socket-id-sender": socket.id })
-                console.log("message", matchingRoom, ":", sender, data)
-
                 connections[matchingRoom].forEach((elem) => {
                     io.to(elem).emit("chat-message", data, sender, socket.id)
                 })
             }
         })
 
-        // ==========================================
-        // TRANSCRIPT LOGIC (ROOM ISOLATED)
-        // ==========================================
         socket.on("transcript-update", (incomingTranscript) => {
-            
-            // 1. Dhoondo ki ye user kis meeting link/room mein hai
             const [matchingRoom, found] = Object.entries(connections)
                 .reduce(([room, isFound], [roomKey, roomValue]) => {
-                    if (!isFound && roomValue.includes(socket.id)) {
-                        return [roomKey, true];
-                    }
+                    if (!isFound && roomValue.includes(socket.id)) return [roomKey, true];
                     return [room, isFound];
                 }, ['', false]);
 
-            // 2. Sirf ussi room ke logon ko transcript bhejo
             if (found === true) {
                 connections[matchingRoom].forEach((elem) => {
-                    // Khud ko chhod kar baaki sabko bhej do
                     if (elem !== socket.id) {
                         io.to(elem).emit("transcript-update", incomingTranscript);
                     }
                 })
             }
         });
-        // ==========================================
 
         socket.on("disconnect", () => {
-
+            console.log("Disconnected:", socket.id);
             var diffTime = Math.abs(timeOnline[socket.id] - new Date())
             var key
 
             for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {
-
                 for (let a = 0; a < v.length; ++a) {
                     if (v[a] === socket.id) {
                         key = k
-
                         for (let a = 0; a < connections[key].length; ++a) {
                             io.to(connections[key][a]).emit('user-left', socket.id)
                         }
-
                         var index = connections[key].indexOf(socket.id)
                         connections[key].splice(index, 1)
 
