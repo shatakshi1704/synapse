@@ -12,7 +12,7 @@ const WHITE = "#FFFFFF";
 
 export default function History() {
     // ----------------------------------------------------
-    // TUMHARA ORIGINAL LOGIC - 100% UNTOUCHED
+    // LIVE LOGIC INTEGRATION
     // ----------------------------------------------------
     const { getHistoryOfUser } = useContext(AuthContext);
     const [meetings, setMeetings] = useState([]);
@@ -22,9 +22,11 @@ export default function History() {
         const fetchHistory = async () => {
             try {
                 const history = await getHistoryOfUser();
+                // Logs all raw payload responses cleanly for inspection
+                console.log("👉 All loaded history records:", history);
                 setMeetings(history);
-            } catch {
-                // IMPLEMENT SNACKBAR
+            } catch (error) {
+                console.error("Failed to parse workspace logs:", error);
             }
         }
         fetchHistory();
@@ -37,6 +39,28 @@ export default function History() {
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     }
+
+    // Comprehensive multi-key fallback download logic
+    const downloadSavedTranscript = (meetingObject) => {
+        // Checks all possible object keys MongoDB might return
+        const transcriptText = 
+            meetingObject.transcriptData || 
+            meetingObject.transcript || 
+            meetingObject.text || 
+            meetingObject.data;
+
+        if (!transcriptText || transcriptText.trim() === "") {
+            console.error("❌ Diagnostic Log - This item has no text content:", meetingObject);
+            alert(`No transcript data found for room: ${meetingObject.meetingCode || 'Session'}. Check your browser console to inspect keys.`);
+            return;
+        }
+
+        const element = document.createElement("a");
+        const file = new Blob([transcriptText], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = `Transcript-${meetingObject.meetingCode || 'Session'}.txt`;
+        element.click();
+    };
     // ----------------------------------------------------
 
     // ANIMATION VARIANTS
@@ -44,12 +68,12 @@ export default function History() {
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
-            transition: { staggerChildren: 0.15 } // Ek ke baad ek aayenge
+            transition: { staggerChildren: 0.15 }
         }
     };
 
     const cardVariants = {
-        hidden: { opacity: 0, x: 50 }, // Side (right) se aayega
+        hidden: { opacity: 0, x: 50 },
         show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 80 } }
     };
 
@@ -139,7 +163,7 @@ export default function History() {
                                         </div>
                                         
                                         <div style={{ fontSize: "1.5rem", fontWeight: "700", color: TEXT_DARK, marginBottom: "8px" }}>
-                                            {e.meetingCode}
+                                            {e.meetingCode || "Unnamed Room"}
                                         </div>
                                         
                                         <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6b7280", fontSize: "0.95rem", flex: 1 }}>
@@ -149,12 +173,13 @@ export default function History() {
                                                 <line x1="8" y1="2" x2="8" y2="6"></line>
                                                 <line x1="3" y1="10" x2="21" y2="10"></line>
                                             </svg>
-                                            {formatDate(e.date)}
+                                            {e.date ? formatDate(e.date) : "Recent"}
                                         </div>
 
                                         {/* View Transcript Button Layer */}
                                         <div style={{ marginTop: "20px", paddingTop: "15px", borderTop: `1px solid ${PRIMARY_BURGUNDY}15`, display: "flex", justifyContent: "flex-end" }}>
                                             <motion.button
+                                                onClick={() => downloadSavedTranscript(e)}
                                                 whileHover={{ scale: 1.02, backgroundColor: `${PRIMARY_BURGUNDY}10` }}
                                                 whileTap={{ scale: 0.95 }}
                                                 style={{
@@ -185,7 +210,11 @@ export default function History() {
                                 )
                             })}
                         </motion.div>
-                    ) : <></>
+                    ) : (
+                        <div style={{ textAlign: "center", marginTop: "100px", color: "#9ca3af" }}>
+                            No past configurations loaded into this workspace profile.
+                        </div>
+                    )
                 }
             </div>
         </div>

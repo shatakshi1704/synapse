@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from "socket.io-client";
-import { Badge, IconButton } from '@mui/material';
+import { Badge, IconButton, Button } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import server from '../environment';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 
 const server_url = server;
 var connections = {};
@@ -28,9 +29,17 @@ const TEXT_DARK = "#1f2937";
 const WHITE = "#FFFFFF";
 
 export default function VideoMeetComponent() {
+    // --- STATE AND REFERENCE INITIALIZATION ---
+    const [transcript, setTranscript] = useState("");
+    const [isListening, setIsListening] = useState(false);
+    const [showTranscript, setShowTranscript] = useState(false);
+    const [fullscreenId, setFullscreenId] = useState(null);
+
+    const recognitionRef = useRef(null);
     var socketRef = useRef();
     let socketIdRef = useRef();
     let localVideoref = useRef();
+    const videoRef = useRef([]);
 
     let [videoAvailable, setVideoAvailable] = useState(true);
     let [audioAvailable, setAudioAvailable] = useState(true);
@@ -44,24 +53,126 @@ export default function VideoMeetComponent() {
     let [newMessages, setNewMessages] = useState(0);
     let [askForUsername, setAskForUsername] = useState(true);
     let [username, setUsername] = useState("");
-
-    const videoRef = useRef([]);
     let [videos, setVideos] = useState([]);
 
-    // NEW: track which video is fullscreened (null = none, 'local' = my video, socketId = other person)
-    let [fullscreenId, setFullscreenId] = useState(null);
+    // Reference tracker to safely access live username values inside the speech engine
+    const usernameRef = useRef(username);
+    useEffect(() => {
+        usernameRef.current = username;
+    }, [username]);
 
-    // --- CORE LOGIC (UNTOUCHED) ---
+    // --- CORE LIFE CYCLE HOOKS ---
     useEffect(() => {
         getPermissions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (video !== undefined && audio !== undefined) {
+            getUserMedia();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [video, audio]);
+
+    // Safe tracker to prevent stale closure bugs inside Chrome's auto-timeout handler
+    const shouldListenRef = useRef(false);
+
+    // Initialize Upgraded Keep-Alive Speech Recognition Engine with Live Whispering Logs
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true; // Stays true so Chrome captures live talking segments
+            recognition.lang = 'en-IN'; // Optimized routing for your regional network connection
+
+            recognition.onresult = (event) => {
+                let finalTranscript = "";
+                let interimTranscript = ""; // Tracks live unfinalized word guesses
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // LIVE DEBUG LOG: Displays in console what Chrome thinks it's hearing in real-time
+                if (interimTranscript.trim()) {
+                    console.log("👉 Chrome hears you whispering:", interimTranscript);
+                }
+                
+                if (finalTranscript.trim()) {
+                    const formattedText = `${usernameRef.current}: ${finalTranscript}`;
+                    
+                    // Append the current speaker text cleanly on a new line
+                    setTranscript(prev => prev ? prev + "\n" + formattedText : formattedText);
+
+                    // Broadcast raw sequence to active room listeners via sockets
+                    if (socketRef.current) {
+                        socketRef.current.emit('transcript-update', formattedText);
+                    }
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Recognition Live Log:", event.error);
+            };
+
+            recognition.onend = () => {
+                // KEEP-ALIVE LOOP: If Chrome cuts the mic due to an idle silence timeout, 
+                // but our button is still active, instantly wake it back up!
+                if (shouldListenRef.current) {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error("Keep-alive auto-restart bypassed:", error);
+                    }
+                } else {
+                    setIsListening(false);
+                }
+            };
+
+            recognitionRef.current = recognition;
+        }
+    }, []);
+
+    // --- UPGRADED TOGGLE METHOD ---
+    const toggleListening = () => {
+        if (!recognitionRef.current) {
+            alert("Speech recognition is not supported or initialized in this browser.");
+            return;
+        }
+
+        if (isListening) {
+            shouldListenRef.current = false;
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                shouldListenRef.current = true;
+                recognitionRef.current.start();
+                setIsListening(true);
+            } catch (error) {
+                console.error("Failed to start speech engine:", error);
+            }
+        }
+    };
+
+    const downloadTranscript = () => {
+        const element = document.createElement("a");
+        const file = new Blob([transcript], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = "meeting-transcript.txt";
+        element.click();
+    };
 
     let getDislayMedia = () => {
         if (screen) {
             if (navigator.mediaDevices.getDisplayMedia) {
                 navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
                     .then(getDislayMediaSuccess)
-                    .then((stream) => { })
                     .catch((e) => console.log(e))
             }
         }
@@ -93,12 +204,6 @@ export default function VideoMeetComponent() {
             console.log(error);
         }
     };
-
-    useEffect(() => {
-        if (video !== undefined && audio !== undefined) {
-            getUserMedia();
-        }
-    }, [video, audio]);
 
     let getMedia = () => {
         setVideo(videoAvailable);
@@ -207,14 +312,17 @@ export default function VideoMeetComponent() {
 
     let connectToSocketServer = () => {
         socketRef.current = io.connect(server_url, { secure: false });
+        socketRef.current.on('chat-message', addMessage);
         socketRef.current.on('signal', gotMessageFromServer);
         socketRef.current.on('connect', () => {
             socketRef.current.emit('join-call', window.location.href);
             socketIdRef.current = socketRef.current.id;
             socketRef.current.on('chat-message', addMessage);
+            socketRef.current.on('transcript-update', (incomingTranscript) => {
+                setTranscript(prev => prev ? prev + "\n" + incomingTranscript : incomingTranscript);
+            });
             socketRef.current.on('user-left', (id) => {
                 setVideos((videos) => videos.filter((video) => video.socketId !== id));
-                // if fullscreened person left, exit fullscreen
                 if (fullscreenId === id) setFullscreenId(null);
             });
             socketRef.current.on('user-joined', (id, clients) => {
@@ -286,13 +394,35 @@ export default function VideoMeetComponent() {
     let handleVideo = () => setVideo(!video);
     let handleAudio = () => setAudio(!audio);
     let handleScreen = () => setScreen(!screen);
-    useEffect(() => { if (screen !== undefined) getDislayMedia(); }, [screen]);
+    
+    useEffect(() => { 
+        if (screen !== undefined) getDislayMedia(); 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [screen]);
 
-    let handleEndCall = () => {
+    let handleEndCall = async () => {
         try {
             let tracks = localVideoref.current.srcObject.getTracks();
             tracks.forEach(track => track.stop());
-        } catch (e) { }
+        } catch (e) { console.log(e) }
+
+        if (transcript) {
+            try {
+                await fetch(`${server_url}/api/save-transcript`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        meetingUrl: window.location.href,
+                        transcriptData: transcript,
+                        date: new Date()
+                    })
+                });
+                console.log("Transcript successfully processed and saved to cluster history.");
+            } catch (error) {
+                console.log("Failed to commit transcript write operations:", error);
+            }
+        }
+
         window.location.href = "/home";
     };
 
@@ -315,12 +445,10 @@ export default function VideoMeetComponent() {
         getMedia();
     };
 
-    // Toggle fullscreen for a video by id ('local' or socketId)
     const toggleFullscreen = (id) => {
         setFullscreenId(prev => prev === id ? null : id);
     };
 
-    // Escape key exits fullscreen
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') setFullscreenId(null);
@@ -329,7 +457,6 @@ export default function VideoMeetComponent() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Shared video card style builder
     const getVideoCardStyle = (id) => {
         const isFullscreen = fullscreenId === id;
         if (isFullscreen) {
@@ -345,7 +472,6 @@ export default function VideoMeetComponent() {
                 justifyContent: 'center',
             };
         }
-        // when someone else is fullscreened, hide others
         if (fullscreenId !== null && fullscreenId !== id) {
             return { display: 'none' };
         }
@@ -377,7 +503,6 @@ export default function VideoMeetComponent() {
         };
     };
 
-    // Fullscreen button shown on hover via CSS class
     const fullscreenBtnStyle = (id) => ({
         position: 'absolute',
         top: fullscreenId === id ? '20px' : '10px',
@@ -393,7 +518,7 @@ export default function VideoMeetComponent() {
     return (
         <div style={{ backgroundColor: askForUsername ? "#FAFAFA" : "#0f172a", minHeight: "100vh", fontFamily: "'Inter', sans-serif" }}>
 
-            {/* LOBBY */}
+            {/* LOBBY INTERFACE */}
             {askForUsername ? (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
                     <motion.div
@@ -437,31 +562,29 @@ export default function VideoMeetComponent() {
                 </div>
             ) : (
 
-                /* IN-MEETING UI */
+                /* CALL ACTIVE SCREEN VIEWPORTS */
                 <div style={{ display: "flex", height: "100vh", position: "relative", overflow: "hidden" }}>
 
-                    {/* VIDEO GRID */}
+                    {/* VIDEO FRAME WRAPPER CONTAINER */}
                     <div style={{ flex: 1, padding: "20px", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", alignContent: "center", gap: "20px", transition: "all 0.3s" }}>
 
-                        {/* My Local Video */}
+                        {/* Local Stream Output */}
                         <div style={getVideoCardStyle('local')}>
                             <video
                                 ref={localVideoref}
                                 autoPlay
                                 muted
-                                style={getVideoStyle('local')}
+                                style={{ ...getVideoStyle('local'), transform: "scaleX(-1)" }} // Flips local video naturally like a mirror
                             />
-                            {/* Name label */}
                             <div style={{ position: "absolute", bottom: fullscreenId === 'local' ? "30px" : "15px", left: fullscreenId === 'local' ? "30px" : "15px", backgroundColor: "rgba(0,0,0,0.6)", padding: "5px 12px", borderRadius: "6px", color: WHITE, fontSize: "0.8rem", fontWeight: "bold", zIndex: 210 }}>
                                 You ({username})
                             </div>
-                            {/* Fullscreen toggle button */}
                             <IconButton onClick={() => toggleFullscreen('local')} style={fullscreenBtnStyle('local')}>
                                 {fullscreenId === 'local' ? <FullscreenExitIcon /> : <FullscreenIcon />}
                             </IconButton>
                         </div>
 
-                        {/* Other participants */}
+                        {/* Distant Call Peers Output */}
                         {videos.map((vid) => (
                             <div key={vid.socketId} style={getVideoCardStyle(vid.socketId)}>
                                 <video
@@ -470,11 +593,9 @@ export default function VideoMeetComponent() {
                                     autoPlay
                                     style={getVideoStyle(vid.socketId)}
                                 />
-                                {/* Fullscreen toggle button */}
                                 <IconButton onClick={() => toggleFullscreen(vid.socketId)} style={fullscreenBtnStyle(vid.socketId)}>
                                     {fullscreenId === vid.socketId ? <FullscreenExitIcon /> : <FullscreenIcon />}
                                 </IconButton>
-                                {/* Click anywhere on video to fullscreen too */}
                                 {fullscreenId === vid.socketId && (
                                     <div
                                         onClick={() => setFullscreenId(null)}
@@ -486,7 +607,7 @@ export default function VideoMeetComponent() {
                         ))}
                     </div>
 
-                    {/* CHAT SIDEBAR */}
+                    {/* INTERACTIVE CHAT PANEL */}
                     <AnimatePresence>
                         {showModal && (
                             <motion.div
@@ -532,7 +653,7 @@ export default function VideoMeetComponent() {
                         )}
                     </AnimatePresence>
 
-                    {/* BOTTOM CONTROL BAR — always on top of fullscreen too */}
+                    {/* FLOATING ACTION TOOLBAR CONTROL BAR */}
                     <div style={{ position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "15px", backgroundColor: "rgba(30, 41, 59, 0.8)", backdropFilter: "blur(10px)", padding: "15px 25px", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)", zIndex: 300 }}>
                         <IconButton onClick={handleVideo} style={{ backgroundColor: video ? "rgba(255,255,255,0.1)" : "#ef4444", color: WHITE, width: "50px", height: "50px" }}>
                             {video ? <VideocamIcon /> : <VideocamOffIcon />}
@@ -551,10 +672,34 @@ export default function VideoMeetComponent() {
                             </IconButton>
                         </Badge>
                         <div style={{ width: "2px", backgroundColor: "rgba(255,255,255,0.2)", margin: "0 5px" }} />
+                        
+                        {/* Audio Streaming Transcription Toggle Button */}
+                        <IconButton onClick={toggleListening} style={{ backgroundColor: isListening ? "#ef4444" : "rgba(255,255,255,0.1)", color: WHITE, width: "50px", height: "50px" }}>
+                            <TextSnippetIcon />
+                        </IconButton>
+
+                        {/* Live Transcript Drawer Viewport Toggle */}
+                        <IconButton onClick={() => setShowTranscript(!showTranscript)} style={{ backgroundColor: showTranscript ? PRIMARY_BURGUNDY : "rgba(255,255,255,0.1)", color: WHITE, width: "50px", height: "50px" }}>
+                            <TextSnippetIcon style={{ opacity: 0.7 }} />
+                        </IconButton>
+
                         <IconButton onClick={handleEndCall} style={{ backgroundColor: "#ef4444", color: WHITE, width: "50px", height: "50px", marginLeft: "10px" }}>
                             <CallEndIcon />
                         </IconButton>
                     </div>
+
+                    {/* FIXED SIDE TRANSCRIPT VISUAL PANEL LAYOUT */}
+                    {showTranscript && (
+                        <div style={{ position: 'fixed', right: 20, top: 20, width: 320, height: '75vh', backgroundColor: WHITE, padding: 20, zIndex: 1000, borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+                            <h3 style={{ margin: '0 0 15px 0', color: PRIMARY_BURGUNDY, fontSize: '1.2rem' }}>Live Workspace Transcript</h3>
+                            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '15px', padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', color: TEXT_DARK, whiteSpace: 'pre-wrap', fontSize: '0.9rem', textAlign: 'left' }}>
+                                {transcript || "No words tracked yet. Activate microphone recording to begin stream logging..."}
+                            </div>
+                            <Button variant="contained" onClick={downloadTranscript} style={{ backgroundColor: PRIMARY_BURGUNDY, color: WHITE, borderRadius: '8px', padding: '10px', fontWeight: 'bold' }}>
+                                Download Local Copy (.txt)
+                            </Button>
+                        </div>
+                    )}
 
                 </div>
             )}

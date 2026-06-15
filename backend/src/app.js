@@ -21,6 +21,42 @@ app.use(express.urlencoded({ limit: "40kb", extended: true }));
 // Routes
 app.use("/api/v1/users", userRoutes);
 
+// ==========================================
+// 1. DATABASE MODEL FOR TRANSCRIPT
+// ==========================================
+const meetingHistorySchema = new mongoose.Schema({
+    meetingUrl: { type: String, required: true },
+    transcriptData: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+});
+
+// Avoid OverwriteModelError in case of hot-reloads
+const MeetingHistory = mongoose.models.MeetingHistory || mongoose.model('MeetingHistory', meetingHistorySchema);
+
+// ==========================================
+// 2. API ROUTE TO SAVE TRANSCRIPT
+// ==========================================
+app.post('/api/save-transcript', async (req, res) => {
+    try {
+        const { meetingUrl, transcriptData, date } = req.body;
+
+        const newHistory = new MeetingHistory({
+            meetingUrl,
+            transcriptData,
+            date
+        });
+
+        await newHistory.save();
+
+        console.log("Success: Transcript saved to Database!");
+        res.status(200).json({ message: "Saved perfectly!" });
+    } catch (error) {
+        console.error("Error saving transcript:", error);
+        res.status(500).json({ error: "Failed to save transcript" });
+    }
+});
+// ==========================================
+
 const start = async () => {
     // Database connection string from .env file
     const dbURI = process.env.MONGO_URI;

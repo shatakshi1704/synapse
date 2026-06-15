@@ -1,6 +1,5 @@
 import { Server } from "socket.io"
 
-
 let connections = {}
 let messages = {}
 let timeOnline = {}
@@ -15,7 +14,6 @@ export const connectToSocket = (server) => {
         }
     });
 
-
     io.on("connection", (socket) => {
 
         console.log("SOMETHING CONNECTED")
@@ -29,10 +27,6 @@ export const connectToSocket = (server) => {
 
             timeOnline[socket.id] = new Date();
 
-            // connections[path].forEach(elem => {
-            //     io.to(elem)
-            // })
-
             for (let a = 0; a < connections[path].length; a++) {
                 io.to(connections[path][a]).emit("user-joined", socket.id, connections[path])
             }
@@ -43,7 +37,6 @@ export const connectToSocket = (server) => {
                         messages[path][a]['sender'], messages[path][a]['socket-id-sender'])
                 }
             }
-
         })
 
         socket.on("signal", (toId, message) => {
@@ -54,7 +47,6 @@ export const connectToSocket = (server) => {
 
             const [matchingRoom, found] = Object.entries(connections)
                 .reduce(([room, isFound], [roomKey, roomValue]) => {
-
 
                     if (!isFound && roomValue.includes(socket.id)) {
                         return [roomKey, true];
@@ -76,13 +68,37 @@ export const connectToSocket = (server) => {
                     io.to(elem).emit("chat-message", data, sender, socket.id)
                 })
             }
-
         })
+
+        // ==========================================
+        // TRANSCRIPT LOGIC (ROOM ISOLATED)
+        // ==========================================
+        socket.on("transcript-update", (incomingTranscript) => {
+            
+            // 1. Dhoondo ki ye user kis meeting link/room mein hai
+            const [matchingRoom, found] = Object.entries(connections)
+                .reduce(([room, isFound], [roomKey, roomValue]) => {
+                    if (!isFound && roomValue.includes(socket.id)) {
+                        return [roomKey, true];
+                    }
+                    return [room, isFound];
+                }, ['', false]);
+
+            // 2. Sirf ussi room ke logon ko transcript bhejo
+            if (found === true) {
+                connections[matchingRoom].forEach((elem) => {
+                    // Khud ko chhod kar baaki sabko bhej do
+                    if (elem !== socket.id) {
+                        io.to(elem).emit("transcript-update", incomingTranscript);
+                    }
+                })
+            }
+        });
+        // ==========================================
 
         socket.on("disconnect", () => {
 
             var diffTime = Math.abs(timeOnline[socket.id] - new Date())
-
             var key
 
             for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {
@@ -96,25 +112,16 @@ export const connectToSocket = (server) => {
                         }
 
                         var index = connections[key].indexOf(socket.id)
-
                         connections[key].splice(index, 1)
-
 
                         if (connections[key].length === 0) {
                             delete connections[key]
                         }
                     }
                 }
-
             }
-
-
         })
-
-
     })
-
 
     return io;
 }
-
