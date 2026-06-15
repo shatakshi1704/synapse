@@ -312,21 +312,35 @@ export default function VideoMeetComponent() {
             transports: ["websocket", "polling"] 
         });
         
+        // Bulletproof Fix: Purane listeners remove karo taaki double events fire na hon
+        socketRef.current.off('signal');
         socketRef.current.on('signal', gotMessageFromServer);
+        
+        socketRef.current.off('connect');
         socketRef.current.on('connect', () => {
             // FIX 2: Normalize path, remove trailing slash, and lowercase it to ensure exact room match
             const cleanPath = window.location.pathname.replace(/\/$/, "").toLowerCase();
             socketRef.current.emit('join-call', cleanPath);
 
             socketIdRef.current = socketRef.current.id;
+
+            // Chat double aane ka fix
+            socketRef.current.off('chat-message');
             socketRef.current.on('chat-message', addMessage);
+
+            // Transcript double aane ka fix
+            socketRef.current.off('transcript-update');
             socketRef.current.on('transcript-update', (incomingTranscript) => {
                 setTranscript(prev => prev ? prev + "\n" + incomingTranscript : incomingTranscript);
             });
+
+            socketRef.current.off('user-left');
             socketRef.current.on('user-left', (id) => {
                 setVideos((videos) => videos.filter((video) => video.socketId !== id));
                 if (fullscreenId === id) setFullscreenId(null);
             });
+
+            socketRef.current.off('user-joined');
             socketRef.current.on('user-joined', (id, clients) => {
                 clients.forEach((socketListId) => {
                     // FIX 3: Only create a new RTCPeerConnection if one doesn't already exist
