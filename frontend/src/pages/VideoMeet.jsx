@@ -312,7 +312,6 @@ export default function VideoMeetComponent() {
             transports: ["websocket", "polling"] 
         });
         
-        socketRef.current.on('chat-message', addMessage);
         socketRef.current.on('signal', gotMessageFromServer);
         socketRef.current.on('connect', () => {
             // FIX 2: Normalize path, remove trailing slash, and lowercase it to ensure exact room match
