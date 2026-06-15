@@ -19,7 +19,8 @@ export const connectToSocket = (server) => {
 
         socket.on("join-call", (path) => {
             // FIX: Trailing slash hatao taaki room mismatch na ho
-            const cleanPath = path.replace(/\/$/, ""); 
+            // FIX: Trailing slash hatao aur lowercase karo taaki case mismatch na ho
+            const cleanPath = path.replace(/\/$/, "").toLowerCase();
             
             console.log("User", socket.id, "joining path:", cleanPath);
 

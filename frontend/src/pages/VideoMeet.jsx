@@ -306,12 +306,17 @@ export default function VideoMeetComponent() {
     };
 
     let connectToSocketServer = () => {
-        socketRef.current = io.connect(server_url, { secure: false });
+        // FIX 1: Added secure: true and transports for Render to prevent connection drops/split rooms
+        socketRef.current = io.connect(server_url, { 
+            secure: true, 
+            transports: ["websocket", "polling"] 
+        });
+        
         socketRef.current.on('chat-message', addMessage);
         socketRef.current.on('signal', gotMessageFromServer);
         socketRef.current.on('connect', () => {
-            // FIX 2: Normalize path to remove trailing slash so both users land in the same room
-            const cleanPath = window.location.pathname.replace(/\/$/, "");
+            // FIX 2: Normalize path, remove trailing slash, and lowercase it to ensure exact room match
+            const cleanPath = window.location.pathname.replace(/\/$/, "").toLowerCase();
             socketRef.current.emit('join-call', cleanPath);
 
             socketIdRef.current = socketRef.current.id;
