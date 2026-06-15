@@ -1,7 +1,7 @@
 // environment.js mein
-let IS_PROD = false; // Isse 'false' karo taaki yeh localhost use kare
+let IS_PROD = true; // Ab yeh true rahega taaki live URL use ho
 const server = IS_PROD ?
-    "https://apnacollegebackend.onrender.com" :
+    "https://synapse-ehmv.onrender.com" :
     "http://localhost:8000"
 
 export default server;
