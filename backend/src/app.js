@@ -10,30 +10,31 @@ import userRoutes from "./routes/users.routes.js";
 const app = express();
 const server = createServer(app);
 
-// Initialize Socket.io with production-ready CORS
-const io = connectToSocket(server);
-
-// --- PRODUCTION SECURITY: RESTRICTED CORS ---
-app.use(cors({
-    origin: process.env.FRONTEND_URL || "*", 
+// 1. CORS Configuration (Ye sabse important hai)
+const corsOptions = {
+    origin: ["https://synapse-1-8bee.onrender.com", "https://synapse-frontend.onrender.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-}));
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
 
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
-// Routes
+// 2. Socket.io with CORS
+const io = new Server(server, {
+    cors: {
+        origin: ["https://synapse-1-8bee.onrender.com", "https://synapse-frontend.onrender.com"],
+        methods: ["GET", "POST"]
+    }
+});
+connectToSocket(io); // Socket logic yahan handle hoga
+
+// 3. Routes
 app.use("/api/v1/users", userRoutes);
 
-// Root health check for deployment monitoring
-app.get("/", (req, res) => {
-    res.status(200).send("Synapse Backend is running smoothly.");
-});
-
-// ==========================================
-// TRANSCRIPT API (Cleaned)
-// ==========================================
+// 4. Transcript API
 const meetingHistorySchema = new mongoose.Schema({
     meetingUrl: { type: String, required: true },
     transcriptData: { type: String, required: true },
@@ -44,10 +45,10 @@ const MeetingHistory = mongoose.models.MeetingHistory || mongoose.model('Meeting
 
 app.post('/api/save-transcript', async (req, res) => {
     try {
-        const { meetingUrl, transcriptData, date } = req.body;
+        const { meetingUrl, transcriptData } = req.body;
         if (!meetingUrl || !transcriptData) return res.status(400).json({ error: "Missing data" });
 
-        await MeetingHistory.create({ meetingUrl, transcriptData, date });
+        await MeetingHistory.create({ meetingUrl, transcriptData });
         res.status(200).json({ message: "Saved perfectly!" });
     } catch (error) {
         console.error("Error saving transcript:", error);
@@ -55,24 +56,28 @@ app.post('/api/save-transcript', async (req, res) => {
     }
 });
 
+app.get("/", (req, res) => {
+    res.status(200).send("Synapse Backend is running.");
+});
+
+// 5. Database & Server Start
 const start = async () => {
     const dbURI = process.env.MONGO_URI;
     const PORT = process.env.PORT || 8000;
 
     if (!dbURI) {
-        console.error("FATAL ERROR: MONGO_URI is not defined in .env");
+        console.error("FATAL ERROR: MONGO_URI missing");
         process.exit(1);
     }
 
     try {
         await mongoose.connect(dbURI);
         console.log(`Connected to MongoDB`);
-        
         server.listen(PORT, () => {
             console.log(`SERVER LISTENING ON PORT ${PORT}`);
         });
     } catch (error) {
-        console.error("Database connection failed:", error);
+        console.error("Database error:", error);
         process.exit(1);
     }
 }
