@@ -1,13 +1,12 @@
 <p align="center">
-  <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100%" />
+  <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100%">
 </p>
 
 <br>
 
-
 # Synapse — Real-Time Video Conferencing & Live Transcription Platform
 
-A scalable real-time video collaboration and live transcription ecosystem built for seamless global conversations[cite: 1, 2].
+A scalable real-time video collaboration and live transcription ecosystem built for seamless global conversations.
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-deepmaroon?style=flat-square)](https://synapse-1-bee.onrender.com)
 [![WebRTC](https://img.shields.io/badge/WebRTC-P2P-blue?style=flat-square)](https://webrtc.org)
@@ -37,9 +36,9 @@ A scalable real-time video collaboration and live transcription ecosystem built 
 
 ## About the Project
 
-**Synapse** is a modern, high-definition video conferencing platform designed to solve the friction of taking manual meeting notes[cite: 1, 2]. By integrating native browser Web Speech API transcription directly into peer-to-peer WebRTC video streams, Synapse auto-synthesizes spoken dialogue into a live workspace transcript[cite: 1, 2].
+**Synapse** is a modern, high-definition video conferencing platform designed to solve the friction of taking manual meeting notes. By integrating native browser Web Speech API transcription directly into peer-to-peer WebRTC video streams, Synapse auto-synthesizes spoken dialogue into a live workspace transcript.
 
-It features secure JWT-based authentication, real-time Socket.io signaling rooms, and persistent meeting logs stored via MongoDB and Mongoose[cite: 1, 2].
+It features secure JWT-based authentication, real-time Socket.io signaling rooms, and persistent meeting logs stored via MongoDB and Mongoose.
 
 ---
 
@@ -47,26 +46,26 @@ It features secure JWT-based authentication, real-time Socket.io signaling rooms
 
 | Feature | Description |
 | :--- | :--- |
-| **Real-Time P2P Streaming** | Low-latency audio/video tracks routed directly via WebRTC and `getUserMedia`[cite: 1, 2]. |
-| **NAT Traversal Support** | Integrated STUN/TURN configurations to maintain stable connections across restrictive firewalls[cite: 1, 2]. |
-| **Live Workspace Transcription** | Converts local speech to text via the Web Speech API and broadcasts captions in real-time[cite: 1, 2]. |
-| **Secure Authentication** | Sign-in/sign-up flows protected with `bcrypt` hashing and HTTP-only cookie JWT storage[cite: 1, 2]. |
-| **Room Code Orchestration** | Isolated channel grouping via `socket.join(roomCode)` for multi-peer event relaying[cite: 1, 2]. |
-| **Meeting History Logs** | Dedicated dashboard endpoints to review, inspect, and export past session transcripts (`.txt`)[cite: 1, 2]. |
-| **Rate Limiting & Security** | Configured with `express-rate-limit`, `helmet`, and strict CORS policies[cite: 1, 2]. |
+| **Real-Time P2P Streaming** | Low-latency audio/video tracks routed directly via WebRTC and `getUserMedia`. |
+| **NAT Traversal Support** | Integrated STUN/TURN configurations to maintain stable connections across restrictive firewalls. |
+| **Live Workspace Transcription** | Converts local speech to text via the Web Speech API and broadcasts captions in real-time. |
+| **Secure Authentication** | Sign-in/sign-up flows protected with `bcrypt` hashing and HTTP-only cookie JWT storage. |
+| **Room Code Orchestration** | Isolated channel grouping via `socket.join(roomCode)` for multi-peer event relaying. |
+| **Meeting History Logs** | Dedicated dashboard endpoints to review, inspect, and export past session transcripts (`.txt`). |
+| **Rate Limiting & Security** | Configured with `express-rate-limit`, `helmet`, and strict CORS policies. |
 
 ---
 
 ## Tech Stack
 
 ### Backend
-- **Node.js & Express**: Core HTTP server routing and application logic[cite: 1, 2].
-- **Socket.io**: Bidirectional event communication for WebRTC signaling and live chat/captions[cite: 1, 2].
-- **Mongoose & MongoDB**: ODM and database layer for user records and past session persistence[cite: 1, 2].
-- **Bcrypt & JWT**: Secure credential hashing and token-based route authorization[cite: 1, 2].
-- **Helmet & Express Rate Limit**: Hardened HTTP security headers and brute-force protection[cite: 1, 2].
+- **Node.js & Express**: Core HTTP server routing and application logic.
+- **Socket.io**: Bidirectional event communication for WebRTC signaling and live chat/captions.
+- **Mongoose & MongoDB**: ODM and database layer for user records and past session persistence.
+- **Bcrypt & JWT**: Secure credential hashing and token-based route authorization.
+- **Helmet & Express Rate Limit**: Hardened HTTP security headers and brute-force protection.
 
 ### Frontend
-- **React**: Component-driven UI framework with responsive dark-mode layouts[cite: 1, 2].
-- **WebRTC API**: Direct peer media stream ingestion and rendering[cite: 1, 2].
-- **Web Speech API**: Native browser speech recognition for closed captioning[cite: 1, 2].
+- **React**: Component-driven UI framework with responsive dark-mode layouts.
+- **WebRTC API**: Direct peer media stream ingestion and rendering.
+- **Web Speech API**: Native browser speech recognition for closed captioning.
