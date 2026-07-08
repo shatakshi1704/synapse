@@ -12,7 +12,7 @@ A scalable real-time video collaboration and live transcription ecosystem built 
 [![Socket.io](https://img.shields.io/badge/Socket.io-v4.x-orange?style=flat-square)](https://socket.io)
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green?style=flat-square)](https://nodejs.org)
 
-[View Live Demo](https://synapse-1-bee.onrender.com) · [Report Bug](#) · [Request Feature](#)
+[View Live Demo](https://synapse-1-bee.onrender.com) 
 
 ---
 
@@ -231,21 +231,14 @@ The application is optimized for containerized cloud deployment on platforms lik
 ---
 
 ## Screenshots
+<p align="center">
+  <img src="frontend/public/1.png" alt="Synapse Logo" width="100%">
+  <img src="frontend/public/2.png" alt="Synapse Logo" width="100%">
+  <img src="frontend/public/4.png" alt="Synapse Logo" width="100%">
+  <img src="frontend/public/3.png" alt="Synapse Logo" width="100%">
+</p>
 
-*(Insert your visual assets here matching your UI views)*
-
-* **Landing Dashboard**: Clean entry interface with system status indicators.
-* **Active Video Room**: Dark navy interface with peer tiles, media toggles, and speed indicators.
-* **Live Transcript Panel**: Real-time attribution sidebar with `.txt` export capability.
-* **Meeting Logs**: Historical workspace card grid.
-
----
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
+___
 
 ## Author
 
@@ -253,6 +246,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 * GitHub: [@shatakshi1704](https://github.com/shatakshi1704/synapse)
 
-```
 
-```
