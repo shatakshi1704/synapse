@@ -2,6 +2,9 @@
   <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100% />
 </p>
 
+<br>
+
+
 # Synapse — Real-Time Video Conferencing & Live Transcription Platform
 
 A scalable real-time video collaboration and live transcription ecosystem built for seamless global conversations[cite: 1, 2].
