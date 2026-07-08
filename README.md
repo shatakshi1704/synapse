@@ -1,3 +1,4 @@
+```html
 <p align="center">
   <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100%">
 </p>
@@ -69,3 +70,82 @@ It features secure JWT-based authentication, real-time Socket.io signaling rooms
 - **React**: Component-driven UI framework with responsive dark-mode layouts.
 - **WebRTC API**: Direct peer media stream ingestion and rendering.
 - **Web Speech API**: Native browser speech recognition for closed captioning.
+
+---
+
+## Architecture & Signaling Flow
+
+```text
+[Client A (Browser)] <--- WebRTC Media Stream (UDP) ---> [Client B (Browser)]
+        │                                                       │
+        └─────── Socket.io Signaling (Offers, Answers, ICE) ────┘
+                                   │
+                                   ▼
+                      [Node.js / Express Server]
+                                   │
+                                   ▼
+                          [MongoDB Atlas DB]
+
+```
+
+---
+
+## Project Structure
+
+```text
+synapse/
+├── server.js               # Application entry point & HTTP/Socket.io setup
+├── models/
+│   ├── User.js             # User credentials & metadata schema
+│   └── Transcript.js       # Meeting logs, room code, and caption text schema
+├── routes/
+│   ├── authRoutes.js       # Sign-in, sign-up, and logout endpoints
+│   └── sessionRoutes.js    # Protected history & meeting log retrieval
+├── middleware/
+│   └── authMiddleware.js   # JWT extraction & HTTP-only cookie verification
+└── public/ / src/          # Frontend React components, views, and styles
+
+```
+
+---
+
+## Data Models
+
+### User Schema
+
+```javascript
+{
+  username: { type: String, required: true },
+  email:    { type: String, required: true, unique: true },
+  password: { type: String, required: true } // bcrypt-hashed
+}
+
+```
+
+### Transcript Schema
+
+```javascript
+{
+  title:       { type: String, required: true },
+  roomCode:    { type: String, required: true },
+  user:        { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  transcript:  { type: String, default: '' },
+  timestamp:   { type: Date, default: Date.now }
+}
+
+```
+
+---
+
+## API Routes
+
+| Method | Endpoint | Description | Auth Required |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/signup` | Register a new user profile | No |
+| `POST` | `/api/auth/login` | Authenticate and issue HTTP-only JWT cookie | No |
+| `GET` | `/api/sessions/history` | Fetch all historical meeting logs for user | Yes |
+| `POST` | `/api/sessions/save` | Persist accumulated room transcript to DB | Yes |
+
+```
+
+```
