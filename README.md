@@ -1,4 +1,4 @@
-```html
+
 <p align="center">
   <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100%">
 </p>
