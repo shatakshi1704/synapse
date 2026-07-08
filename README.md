@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/together logo.png" alt="Synapse Logo" width="120" />
+  <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100% />
 </p>
 
 # Synapse — Real-Time Video Conferencing & Live Transcription Platform
