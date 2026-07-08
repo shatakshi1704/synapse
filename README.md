@@ -12,7 +12,7 @@ A scalable real-time video collaboration and live transcription ecosystem built 
 [![Socket.io](https://img.shields.io/badge/Socket.io-v4.x-orange?style=flat-square)](https://socket.io)
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green?style=flat-square)](https://nodejs.org)
 
-[View Live Demo](https://synapse-1-bee.onrender.com)
+[View Live Demo](https://synapse-1-8bee.onrender.com)
 
 ---
 
