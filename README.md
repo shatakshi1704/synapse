@@ -28,7 +28,6 @@ A scalable real-time video collaboration and live transcription ecosystem built 
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
 - [Screenshots](#screenshots)
-- [License](#license)
 - [Author](#author)
 
 ---
