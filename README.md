@@ -3,8 +3,6 @@
   <img src="frontend/public/together logo.png" alt="Synapse Logo" width="100%">
 </p>
 
-<br>
-
 # Synapse — Real-Time Video Conferencing & Live Transcription Platform
 
 A scalable real-time video collaboration and live transcription ecosystem built for seamless global conversations.
@@ -171,6 +169,89 @@ synapse/
 | `POST` | `/api/auth/login` | Authenticate and issue HTTP-only JWT cookie | No |
 | `GET` | `/api/sessions/history` | Fetch all historical meeting logs for user | Yes |
 | `POST` | `/api/sessions/save` | Persist accumulated room transcript to DB | Yes |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+* Node.js (v18 or higher)
+* MongoDB instance or MongoDB Atlas connection string
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone [https://github.com/shatakshi1704/synapse.git](https://github.com/shatakshi1704/synapse.git)
+cd synapse
+
+```
+
+
+2. Install dependencies:
+```bash
+npm install
+
+```
+
+
+3. Set up your `.env` file in the root directory.
+4. Start the server:
+```bash
+npm run start
+
+```
+
+
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following keys:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string_here
+JWT_SECRET=your_jwt_super_secret_key
+SALT_ROUNDS=10
+
+```
+
+---
+
+## Deployment
+
+The application is optimized for containerized cloud deployment on platforms like **Render**.
+
+* **Build Command**: `npm install`
+* **Start Command**: `node server.js`
+
+---
+
+## Screenshots
+
+*(Insert your visual assets here matching your UI views)*
+
+* **Landing Dashboard**: Clean entry interface with system status indicators.
+* **Active Video Room**: Dark navy interface with peer tiles, media toggles, and speed indicators.
+* **Live Transcript Panel**: Real-time attribution sidebar with `.txt` export capability.
+* **Meeting Logs**: Historical workspace card grid.
+
+---
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## Author
+
+**Shatakshi**
+
+* GitHub: [@shatakshi1704](https://github.com/shatakshi1704/synapse)
 
 ```
 
