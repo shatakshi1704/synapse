@@ -234,7 +234,6 @@ The application is optimized for containerized cloud deployment on platforms lik
   <img src="frontend/public/1.png" alt="Synapse Logo" width="100%">
   <img src="frontend/public/2.png" alt="Synapse Logo" width="100%">
   <img src="frontend/public/4.png" alt="Synapse Logo" width="100%">
-  <img src="frontend/public/5.png" alt="Synapse Logo" width="100%">
   <img src="frontend/public/3.png" alt="Synapse Logo" width="100%">
   <img src="frontend/public/6.png" alt="Synapse Logo" width="100%">
 </p>
