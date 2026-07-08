@@ -94,16 +94,42 @@ It features secure JWT-based authentication, real-time Socket.io signaling rooms
 
 ```text
 synapse/
-├── server.js               # Application entry point & HTTP/Socket.io setup
-├── models/
-│   ├── User.js             # User credentials & metadata schema
-│   └── Transcript.js       # Meeting logs, room code, and caption text schema
-├── routes/
-│   ├── authRoutes.js       # Sign-in, sign-up, and logout endpoints
-│   └── sessionRoutes.js    # Protected history & meeting log retrieval
-├── middleware/
-│   └── authMiddleware.js   # JWT extraction & HTTP-only cookie verification
-└── public/ / src/          # Frontend React components, views, and styles
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   │   ├── socketManager.js       # Real-time WebSocket signaling & room logic
+│   │   │   └── user.controller.js     # Auth & session request handlers
+│   │   ├── models/
+│   │   │   ├── meeting.model.js       # Room & transcript metadata schema
+│   │   │   └── user.model.js          # User credentials schema
+│   │   └── routes/
+│   │       └── users.routes.js        # API endpoints for authentication/users
+│   ├── app.js                         # Express server & middleware initialization
+│   ├── package.json
+│   └── package-lock.json
+└── frontend/
+    ├── public/
+    │   ├── index.html
+    │   ├── logo.png
+    │   ├── together logo.png
+    │   ├── writtenlogo.png
+    │   ├── manifest.json
+    │   └── robots.txt
+    └── src/
+        ├── contexts/
+        │   └── AuthContext.jsx        # Global authentication state provider
+        ├── pages/
+        │   ├── VideoMeet.jsx          # Active video conferencing workspace
+        │   ├── authentication.jsx     # Sign in & sign up views
+        │   ├── history.jsx            # Meeting logs dashboard
+        │   ├── home.jsx               # Post-login workspace landing
+        │   └── landing.jsx            # Public marketing landing page
+        ├── styles/
+        │   └── videoComponent.module.css
+        ├── utils/
+        │   └── withAuth.jsx           # Protected route authorization wrapper
+        ├── App.js                     # Root React router setup
+        └── index.js
 
 ```
 
@@ -111,7 +137,7 @@ synapse/
 
 ## Data Models
 
-### User Schema
+### User Schema (`backend/src/models/user.model.js`)
 
 ```javascript
 {
@@ -122,7 +148,7 @@ synapse/
 
 ```
 
-### Transcript Schema
+### Meeting / Transcript Schema (`backend/src/models/meeting.model.js`)
 
 ```javascript
 {
