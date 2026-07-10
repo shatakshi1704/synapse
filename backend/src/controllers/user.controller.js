@@ -68,21 +68,15 @@ const getUserHistory = async (req, res) => {
         const user = await User.findOne({ token });
         if (!user) return res.status(httpStatus.UNAUTHORIZED).json({ message: "Invalid Token" });
         
-        // 1. Fetch metadata meetings
         const meetings = await Meeting.find({ user_id: user.username }).lean();
-        
-        // 2. Fetch raw transcript collection
+
         const transcripts = await mongoose.connection.db.collection('meetinghistories').find({}).toArray();
 
-        // 3. Debugger log for terminal inspection
         console.log(`\n--- DEBUGGER: Found ${meetings.length} meetings and ${transcripts.length} transcripts ---`);
 
-        // 4. Enhanced Stitching Logic
         const enrichedMeetings = meetings.map(meeting => {
             const matchingTranscript = transcripts.find(t => {
                 if (!t.meetingUrl) return false;
-                
-                // Sanitize and normalize for matching
                 const urlRoomCode = decodeURIComponent(t.meetingUrl.split('/').pop()).trim().toLowerCase();
                 const currentMeetingCode = String(meeting.meetingCode || '').trim().toLowerCase();
                 

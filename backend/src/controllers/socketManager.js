@@ -18,8 +18,6 @@ export const connectToSocket = (server) => {
         console.log("SOMETHING CONNECTED:", socket.id);
 
         socket.on("join-call", (path) => {
-            // FIX: Trailing slash hatao taaki room mismatch na ho
-            // FIX: Trailing slash hatao aur lowercase karo taaki case mismatch na ho
             const cleanPath = path.replace(/\/$/, "").toLowerCase();
             
             console.log("User", socket.id, "joining path:", cleanPath);
@@ -30,7 +28,6 @@ export const connectToSocket = (server) => {
             connections[cleanPath].push(socket.id)
             timeOnline[socket.id] = new Date();
 
-            // Debug: Room mein kitne log hain check karne ke liye
             console.log("Current connections in room", cleanPath, ":", connections[cleanPath]);
 
             for (let a = 0; a < connections[cleanPath].length; a++) {

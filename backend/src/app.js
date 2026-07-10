@@ -9,7 +9,6 @@ import userRoutes from "./routes/users.routes.js";
 const app = express();
 const server = createServer(app);
 
-// 1. CORS Configuration (Frontend to Backend API calls ke liye)
 const corsOptions = {
     origin: ["https://synapse-1-8bee.onrender.com", "https://synapse-frontend.onrender.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -21,14 +20,10 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
-// 2. Socket.io Connection (YAHAN FIX KIYA HAI)
-// connectToSocket automatically naya Server banayega aur events sunega
 connectToSocket(server); 
 
-// 3. Routes
 app.use("/api/v1/users", userRoutes);
 
-// 4. Transcript API
 const meetingHistorySchema = new mongoose.Schema({
     meetingUrl: { type: String, required: true },
     transcriptData: { type: String, required: true },
@@ -54,7 +49,6 @@ app.get("/", (req, res) => {
     res.status(200).send("Synapse Backend is running.");
 });
 
-// 5. Database & Server Start
 const start = async () => {
     const dbURI = process.env.MONGO_URI;
     const PORT = process.env.PORT || 8000;

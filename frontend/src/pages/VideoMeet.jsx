@@ -28,7 +28,6 @@ const TEXT_DARK = "#1f2937";
 const WHITE = "#FFFFFF";
 
 export default function VideoMeetComponent() {
-    // --- STATE AND REFERENCE INITIALIZATION ---
     const [transcript, setTranscript] = useState("");
     const [isListening, setIsListening] = useState(false);
     const [showTranscript, setShowTranscript] = useState(false);
@@ -40,7 +39,6 @@ export default function VideoMeetComponent() {
     let localVideoref = useRef();
     const videoRef = useRef([]);
 
-    // FIX 1: connections moved inside component as a useRef to persist across re-renders
     const connections = useRef({});
 
     let [videoAvailable, setVideoAvailable] = useState(true);
@@ -62,17 +60,14 @@ export default function VideoMeetComponent() {
         usernameRef.current = username;
     }, [username]);
 
-    // --- CORE LIFE CYCLE HOOKS ---
     useEffect(() => {
         getPermissions();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (video !== undefined && audio !== undefined) {
             getUserMedia();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [video, audio]);
 
     const shouldListenRef = useRef(false);
@@ -209,7 +204,6 @@ export default function VideoMeetComponent() {
         window.localStream = stream;
         localVideoref.current.srcObject = stream;
 
-        // FIX 1 applied: connections.current used throughout
         for (let id in connections.current) {
             if (id === socketIdRef.current) continue;
             connections.current[id].addStream(window.localStream);
@@ -260,7 +254,6 @@ export default function VideoMeetComponent() {
         window.localStream = stream;
         localVideoref.current.srcObject = stream;
 
-        // FIX 1 applied: connections.current used throughout
         for (let id in connections.current) {
             if (id === socketIdRef.current) continue;
             connections.current[id].addStream(window.localStream);
@@ -288,7 +281,6 @@ export default function VideoMeetComponent() {
         var signal = JSON.parse(message);
         if (fromId !== socketIdRef.current) {
             if (signal.sdp) {
-                // FIX 1 applied: connections.current used throughout
                 connections.current[fromId].setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(() => {
                     if (signal.sdp.type === 'offer') {
                         connections.current[fromId].createAnswer().then((description) => {
@@ -306,29 +298,23 @@ export default function VideoMeetComponent() {
     };
 
     let connectToSocketServer = () => {
-        // FIX 1: Added secure: true and transports for Render to prevent connection drops/split rooms
         socketRef.current = io.connect(server_url, { 
             secure: true, 
             transports: ["websocket", "polling"] 
         });
         
-        // Bulletproof Fix: Purane listeners remove karo taaki double events fire na hon
         socketRef.current.off('signal');
         socketRef.current.on('signal', gotMessageFromServer);
         
         socketRef.current.off('connect');
         socketRef.current.on('connect', () => {
-            // FIX 2: Normalize path, remove trailing slash, and lowercase it to ensure exact room match
             const cleanPath = window.location.pathname.replace(/\/$/, "").toLowerCase();
             socketRef.current.emit('join-call', cleanPath);
 
             socketIdRef.current = socketRef.current.id;
 
-            // Chat double aane ka fix
             socketRef.current.off('chat-message');
             socketRef.current.on('chat-message', addMessage);
-
-            // Transcript double aane ka fix
             socketRef.current.off('transcript-update');
             socketRef.current.on('transcript-update', (incomingTranscript) => {
                 setTranscript(prev => prev ? prev + "\n" + incomingTranscript : incomingTranscript);
@@ -343,7 +329,7 @@ export default function VideoMeetComponent() {
             socketRef.current.off('user-joined');
             socketRef.current.on('user-joined', (id, clients) => {
                 clients.forEach((socketListId) => {
-                    // FIX 3: Only create a new RTCPeerConnection if one doesn't already exist
+
                     if (!connections.current[socketListId]) {
                         connections.current[socketListId] = new RTCPeerConnection(peerConfigConnections);
 
@@ -420,7 +406,6 @@ export default function VideoMeetComponent() {
 
     useEffect(() => {
         if (screen !== undefined) getDislayMedia();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [screen]);
 
     let handleEndCall = async () => {
@@ -523,7 +508,6 @@ export default function VideoMeetComponent() {
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
             border: `2px solid ${PRIMARY_BURGUNDY}`,
             display: 'block',
-            // Mirror only local camera feed; screen share and remote peers stay normal
             transform: (id === 'local' && !screen) ? "scaleX(-1)" : "scaleX(1)"
         };
     };
@@ -543,7 +527,6 @@ export default function VideoMeetComponent() {
     return (
         <div style={{ backgroundColor: askForUsername ? "#FAFAFA" : "#0f172a", minHeight: "100vh", fontFamily: "'Inter', sans-serif" }}>
 
-            {/* LOBBY INTERFACE */}
             {askForUsername ? (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
                     <motion.div
@@ -587,13 +570,13 @@ export default function VideoMeetComponent() {
                 </div>
             ) : (
 
-                /* CALL ACTIVE SCREEN VIEWPORTS */
+
                 <div style={{ display: "flex", height: "100vh", position: "relative", overflow: "hidden" }}>
 
-                    {/* VIDEO FRAME WRAPPER CONTAINER */}
+                  
                     <div style={{ flex: 1, padding: "20px", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", alignContent: "center", gap: "20px", transition: "all 0.3s" }}>
 
-                        {/* Local Stream Output */}
+                  
                         <div style={getVideoCardStyle('local')}>
                             <video
                                 ref={localVideoref}
@@ -609,7 +592,7 @@ export default function VideoMeetComponent() {
                             </IconButton>
                         </div>
 
-                        {/* Distant Call Peers Output */}
+
                         {videos.map((vid) => (
                             <div key={vid.socketId} style={getVideoCardStyle(vid.socketId)}>
                                 <video
@@ -632,7 +615,7 @@ export default function VideoMeetComponent() {
                         ))}
                     </div>
 
-                    {/* INTERACTIVE CHAT PANEL */}
+
                     <AnimatePresence>
                         {showModal && (
                             <motion.div
@@ -678,7 +661,7 @@ export default function VideoMeetComponent() {
                         )}
                     </AnimatePresence>
 
-                    {/* FLOATING ACTION TOOLBAR CONTROL BAR */}
+    
                     <div style={{ position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "15px", backgroundColor: "rgba(30, 41, 59, 0.8)", backdropFilter: "blur(10px)", padding: "15px 25px", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)", zIndex: 300 }}>
                         <IconButton onClick={handleVideo} style={{ backgroundColor: video ? "rgba(255,255,255,0.1)" : "#ef4444", color: WHITE, width: "50px", height: "50px" }}>
                             {video ? <VideocamIcon /> : <VideocamOffIcon />}
@@ -698,12 +681,12 @@ export default function VideoMeetComponent() {
                         </Badge>
                         <div style={{ width: "2px", backgroundColor: "rgba(255,255,255,0.2)", margin: "0 5px" }} />
 
-                        {/* Audio Streaming Transcription Toggle Button */}
+
                         <IconButton onClick={toggleListening} style={{ backgroundColor: isListening ? "#ef4444" : "rgba(255,255,255,0.1)", color: WHITE, width: "50px", height: "50px" }}>
                             <TextSnippetIcon />
                         </IconButton>
 
-                        {/* Live Transcript Drawer Viewport Toggle */}
+      
                         <IconButton onClick={() => setShowTranscript(!showTranscript)} style={{ backgroundColor: showTranscript ? PRIMARY_BURGUNDY : "rgba(255,255,255,0.1)", color: WHITE, width: "50px", height: "50px" }}>
                             <TextSnippetIcon style={{ opacity: 0.7 }} />
                         </IconButton>
@@ -713,7 +696,7 @@ export default function VideoMeetComponent() {
                         </IconButton>
                     </div>
 
-                    {/* FIXED SIDE TRANSCRIPT VISUAL PANEL LAYOUT */}
+       
                     {showTranscript && (
                         <div style={{ position: 'fixed', right: 20, top: 20, width: 320, height: '75vh', backgroundColor: WHITE, padding: 20, zIndex: 1000, borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
                             <h3 style={{ margin: '0 0 15px 0', color: PRIMARY_BURGUNDY, fontSize: '1.2rem' }}>Live Workspace Transcript</h3>

@@ -37,7 +37,6 @@ function HomeComponent() {
     return (
         <div style={{ backgroundColor: WHITE, minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif" }}>
             
-            {/* Navbar */}
             <motion.nav 
                 initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}
                 style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 50px", borderBottom: `1px solid ${PRIMARY_BURGUNDY}20`, flexWrap: "wrap" }}
@@ -67,10 +66,8 @@ function HomeComponent() {
                 </div>
             </motion.nav>
 
-            {/* Main Content Area */}
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 10vw", flexWrap: "wrap", gap: "40px" }}>
                 
-                {/* Left Side */}
                 <motion.div 
                     initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }}
                     style={{ flex: "1 1 400px", maxWidth: "500px" }}
@@ -110,7 +107,6 @@ function HomeComponent() {
                     </div>
                 </motion.div>
 
-                {/* Right Side - Animation Shifted to Right */}
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.4 }}
                     style={{ flex: "1 1 350px", display: "flex", justifyContent: "flex-end", position: "relative", height: "400px", alignItems: "center" }}
@@ -131,7 +127,6 @@ function HomeComponent() {
                             animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
                             style={{ width: "60px", height: "60px", backgroundColor: PRIMARY_BURGUNDY, borderRadius: "50%", zIndex: 10, boxShadow: `0 0 30px ${PRIMARY_BURGUNDY}60` }}
                         />
-                        {/* Cards */}
                         <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} style={{ position: "absolute", top: "20px", left: "20px", padding: "10px 15px", backgroundColor: WHITE, borderRadius: "8px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", border: `1px solid ${PRIMARY_BURGUNDY}20`, display: "flex", alignItems: "center", gap: "10px" }}>
                             <div style={{ width: "8px", height: "8px", backgroundColor: PRIMARY_BURGUNDY, borderRadius: "50%" }} />
                             <span style={{ fontSize: "0.8rem", fontWeight: "bold", color: TEXT_DARK }}>End-to-End Encrypted</span>

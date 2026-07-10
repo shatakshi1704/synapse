@@ -5,15 +5,12 @@ import { motion } from 'framer-motion';
 import HomeIcon from '@mui/icons-material/Home';
 import { IconButton } from '@mui/material';
 
-// Synthesis Theme Colors
 const PRIMARY_BURGUNDY = "#810b38";
 const TEXT_DARK = "#1f2937";
 const WHITE = "#FFFFFF";
 
 export default function History() {
-    // ----------------------------------------------------
-    // LIVE LOGIC INTEGRATION
-    // ----------------------------------------------------
+
     const { getHistoryOfUser } = useContext(AuthContext);
     const [meetings, setMeetings] = useState([]);
     const routeTo = useNavigate();
@@ -22,7 +19,6 @@ export default function History() {
         const fetchHistory = async () => {
             try {
                 const history = await getHistoryOfUser();
-                // Logs all raw payload responses cleanly for inspection
                 console.log("👉 All loaded history records:", history);
                 setMeetings(history);
             } catch (error) {
@@ -40,9 +36,8 @@ export default function History() {
         return `${day}/${month}/${year}`;
     }
 
-    // Comprehensive multi-key fallback download logic
     const downloadSavedTranscript = (meetingObject) => {
-        // Checks all possible object keys MongoDB might return
+
         const transcriptText = 
             meetingObject.transcriptData || 
             meetingObject.transcript || 
@@ -61,9 +56,6 @@ export default function History() {
         element.download = `Transcript-${meetingObject.meetingCode || 'Session'}.txt`;
         element.click();
     };
-    // ----------------------------------------------------
-
-    // ANIMATION VARIANTS
     const containerVariants = {
         hidden: { opacity: 0 },
         show: {
@@ -79,8 +71,6 @@ export default function History() {
 
     return (
         <div style={{ backgroundColor: WHITE, minHeight: "100vh", fontFamily: "'Inter', sans-serif", position: "relative", overflow: "hidden" }}>
-
-            {/* ABSTRACT SIDE ANIMATION (Background) */}
             <motion.div 
                 animate={{ rotate: 360, scale: [1, 1.05, 1] }} 
                 transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
@@ -98,7 +88,6 @@ export default function History() {
                 }}
             />
 
-            {/* Premium Navbar */}
             <motion.nav 
                 initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}
                 style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", padding: "20px 50px", borderBottom: `1px solid ${PRIMARY_BURGUNDY}20`, gap: "20px", backgroundColor: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(10px)" }}
@@ -115,7 +104,6 @@ export default function History() {
                 </h2>
             </motion.nav>
 
-            {/* Main Content */}
             <div style={{ position: "relative", zIndex: 10, padding: "50px 10vw", maxWidth: "1200px", margin: "0 auto" }}>
                 
                 <motion.div 
@@ -130,7 +118,6 @@ export default function History() {
                     </p>
                 </motion.div>
 
-                {/* ANIMATED GRID CONTAINER */}
                 {
                     (meetings.length !== 0) ? (
                         <motion.div 
@@ -176,7 +163,7 @@ export default function History() {
                                             {e.date ? formatDate(e.date) : "Recent"}
                                         </div>
 
-                                        {/* View Transcript Button Layer */}
+
                                         <div style={{ marginTop: "20px", paddingTop: "15px", borderTop: `1px solid ${PRIMARY_BURGUNDY}15`, display: "flex", justifyContent: "flex-end" }}>
                                             <motion.button
                                                 onClick={() => downloadSavedTranscript(e)}

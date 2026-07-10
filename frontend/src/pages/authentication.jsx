@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../contexts/AuthContext';
-import { Snackbar } from '@mui/material'; // Tumhara purana error handler retained hai
+import { Snackbar } from '@mui/material'; 
 
 const PRIMARY_BURGUNDY = "#810b38";
 const TEXT_DARK = "#1f2937";
@@ -15,20 +15,17 @@ export default function Authentication() {
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const [formState, setFormState] = useState(0); // 0 = Login, 1 = Register
+    const [formState, setFormState] = useState(0); 
     const [open, setOpen] = useState(false);
 
     const router = useNavigate();
     const { handleRegister, handleLogin } = useContext(AuthContext);
 
-    // TUMHARA AUTH LOGIC (Untouched, bas safe error handling slightly updated)
     let handleAuth = async () => {
         try {
-            setError(""); // Reset error on new attempt
+            setError(""); 
             if (formState === 0) {
                 let result = await handleLogin(username, password);
-                // Agar login successful ke baad redirect karna hai toh yahan kar sakte ho
-                // router("/home"); 
             }
             if (formState === 1) {
                 let result = await handleRegister(name, username, password);
@@ -47,7 +44,6 @@ export default function Authentication() {
         }
     }
 
-    // SYNTHESIS STYLES
     const inputStyle = {
         width: "100%",
         padding: "14px",
@@ -64,12 +60,10 @@ export default function Authentication() {
     return (
         <div style={{ backgroundColor: WHITE, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "'Inter', sans-serif" }}>
             
-            {/* Minimal Navbar */}
             <nav style={{ width: "100%", padding: "20px 50px", display: "flex", justifyContent: "flex-start" }}>
                 <img src="/together logo.png" alt="Synapse" style={{ height: "40px", cursor: "pointer" }} onClick={() => router("/")} />
             </nav>
 
-            {/* Form Container */}
             <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", width: "100%", paddingBottom: "100px" }}>
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
@@ -82,7 +76,6 @@ export default function Authentication() {
                         border: `1px solid ${PRIMARY_BURGUNDY}15`
                     }}
                 >
-                    {/* Toggle Header */}
                     <div style={{ display: "flex", marginBottom: "30px", borderBottom: `1px solid ${PRIMARY_BURGUNDY}20` }}>
                         <p 
                             onClick={() => { setFormState(0); setError(""); }}
@@ -108,7 +101,7 @@ export default function Authentication() {
                         </p>
                     </div>
 
-                    {/* Animated Form */}
+    
                     <AnimatePresence mode="wait">
                         <motion.form 
                             key={formState === 0 ? 'login' : 'signup'}
@@ -116,7 +109,7 @@ export default function Authentication() {
                             animate={{ x: 0, opacity: 1 }}
                             exit={{ x: formState === 0 ? 10 : -10, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            onSubmit={(e) => e.preventDefault()} // Prevent page reload
+                            onSubmit={(e) => e.preventDefault()}
                         >
                             {formState === 1 && (
                                 <input 
@@ -150,7 +143,6 @@ export default function Authentication() {
                                 onBlur={(e) => e.target.style.border = `1px solid ${PRIMARY_BURGUNDY}40`}
                             />
 
-                            {/* Error Display */}
                             {error && (
                                 <motion.p 
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -178,8 +170,6 @@ export default function Authentication() {
 
                 </motion.div>
             </div>
-
-            {/* Tumhara purana MUI Snackbar */}
             <Snackbar
                 open={open}
                 autoHideDuration={4000}

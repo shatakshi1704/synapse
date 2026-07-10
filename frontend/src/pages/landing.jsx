@@ -12,7 +12,6 @@ export default function LandingPage() {
     return (
         <div style={{ backgroundColor: WHITE, minHeight: "100vh", padding: "0 50px", overflowX: "hidden", fontFamily: "'Inter', sans-serif" }}>
             
-            {/* Navbar */}
             <motion.nav 
                 initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}
                 style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", borderBottom: `1px solid ${PRIMARY_BURGUNDY}` }}
@@ -26,10 +25,8 @@ export default function LandingPage() {
                 </div>
             </motion.nav>
 
-            {/* Main Content Area */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "100px", height: "calc(100vh - 150px)" }}>
                 
-                {/* Left Text */}
                 <motion.div 
                     initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }}
                     style={{ maxWidth: "50%" }}
@@ -51,7 +48,6 @@ export default function LandingPage() {
                     </motion.div>
                 </motion.div>
                 
-                {/* Right Visuals */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 1 }}
                     style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "50%" }}
